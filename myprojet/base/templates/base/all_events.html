@@ -1,0 +1,368 @@
+{% extends 'base/base.html' %}
+
+{% block title %}All Events - Shivmudra Events{% endblock %}
+
+{% block content %}
+<style>
+/* Interactive Status Dropdown Select */
+.status-select {
+    display: inline-flex;
+    padding: 0.35rem 1.8rem 0.35rem 0.85rem;
+    font-size: 0.8rem;
+    font-weight: 600;
+    border-radius: 9999px;
+    letter-spacing: 0.2px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    font-family: inherit;
+    appearance: none;
+    -webkit-appearance: none;
+    -moz-appearance: none;
+    background-repeat: no-repeat;
+    background-position: right 0.6rem center;
+    background-size: 0.7em;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.status-select:focus {
+    outline: none;
+    box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.08);
+}
+
+.status-select.select-pending {
+    background-color: #f59e0b !important;
+    color: #ffffff !important;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
+}
+
+.status-select.select-completed {
+    background-color: #10b981 !important;
+    color: #ffffff !important;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
+}
+
+.status-select.select-cancelled {
+    background-color: #ef4444 !important;
+    color: #ffffff !important;
+    background-image: url("data:image/svg+xml;charset=UTF-8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E") !important;
+}
+
+.status-select:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+}
+
+.status-select option {
+    background-color: #ffffff !important;
+    color: #111827 !important;
+}
+
+.status-select option.select-pending {
+    background-color: #fefbeb !important;
+    color: #f59e0b !important;
+}
+
+.status-select option.select-completed {
+    background-color: #ecfdf5 !important;
+    color: #10b981 !important;
+}
+
+.status-select option.select-cancelled {
+    background-color: #fef2f2 !important;
+    color: #ef4444 !important;
+}
+
+/* Toast Notification Styles */
+.toast-notification {
+    position: fixed;
+    bottom: 2rem;
+    right: 2rem;
+    background-color: #111827;
+    color: #ffffff;
+    padding: 0.75rem 1.5rem;
+    border-radius: 12px;
+    box-shadow: var(--shadow-md);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    transform: translateY(100px);
+    opacity: 0;
+    transition: all 0.4s cubic-bezier(0.16, 1, 0.3, 1);
+    font-weight: 500;
+    font-size: 0.9rem;
+}
+
+.toast-notification.show {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+.toast-success {
+    border-left: 4px solid #10b981;
+}
+
+.toast-error {
+    border-left: 4px solid #ef4444;
+}
+
+.toast-notification i {
+    font-size: 1.1rem;
+}
+</style>
+<div class="dashboard-wrapper">
+    <!-- Header -->
+    <div class="dashboard-header">
+        <div>
+            <h1>All Events</h1>
+            <p class="subtitle">Search, filter, and coordinate your event list</p>
+        </div>
+        <div>
+            <a href="{% url 'event_list' %}" class="btn btn-secondary mr-2">
+                <i class="fa-solid fa-chart-pie"></i> Dashboard Overview
+            </a>
+            <a href="{% url 'event_create' %}" class="btn btn-primary">
+                <i class="fa-solid fa-circle-plus"></i> Add New Event
+            </a>
+        </div>
+    </div>
+
+    <!-- Search & Advanced Filter Section -->
+    <div class="filter-card">
+        <form method="GET" class="filter-form">
+            <div class="filter-grid">
+                <!-- Text Search -->
+                <div class="filter-group search-group">
+                    <label for="search"><i class="fa-solid fa-magnifying-glass"></i> Search</label>
+                    <input type="text" name="search" id="search" value="{{ search_query }}" placeholder="Search by name or location..." class="form-control">
+                </div>
+
+                <!-- Status Filter -->
+                <div class="filter-group">
+                    <label for="status"><i class="fa-solid fa-list-check"></i> Status</label>
+                    <select name="status" id="status" class="form-select">
+                        <option value="">All Statuses</option>
+                        <option value="PENDING" {% if status_filter == 'PENDING' %}selected{% endif %}>Pending</option>
+                        <option value="COMPLETED" {% if status_filter == 'COMPLETED' %}selected{% endif %}>Completed</option>
+                        <option value="CANCELLED" {% if status_filter == 'CANCELLED' %}selected{% endif %}>Cancelled</option>
+                    </select>
+                </div>
+
+                <!-- Start Date -->
+                <div class="filter-group">
+                    <label for="start_date"><i class="fa-solid fa-calendar-day"></i> From Date</label>
+                    <input type="date" name="start_date" id="start_date" value="{{ start_date }}" class="form-control">
+                </div>
+
+                <!-- End Date -->
+                <div class="filter-group">
+                    <label for="end_date"><i class="fa-solid fa-calendar-day"></i> To Date</label>
+                    <input type="date" name="end_date" id="end_date" value="{{ end_date }}" class="form-control">
+                </div>
+
+                <!-- Sort By -->
+                <div class="filter-group">
+                    <label for="sort_by"><i class="fa-solid fa-arrows-up-down"></i> Sort By</label>
+                    <select name="sort_by" id="sort_by" class="form-select">
+                        <option value="-scheduled_date" {% if sort_by == '-scheduled_date' %}selected{% endif %}>Date (Newest First)</option>
+                        <option value="scheduled_date" {% if sort_by == 'scheduled_date' %}selected{% endif %}>Date (Oldest First)</option>
+                        <option value="name" {% if sort_by == 'name' %}selected{% endif %}>Name (A-Z)</option>
+                        <option value="-name" {% if sort_by == '-name' %}selected{% endif %}>Name (Z-A)</option>
+                        <option value="-total_rs" {% if sort_by == '-total_rs' %}selected{% endif %}>Total Rs. (High to Low)</option>
+                        <option value="total_rs" {% if sort_by == 'total_rs' %}selected{% endif %}>Total Rs. (Low to High)</option>
+                        <option value="status" {% if sort_by == 'status' %}selected{% endif %}>Status</option>
+                    </select>
+                </div>
+
+                <!-- Actions -->
+                <div class="filter-group filter-actions-group">
+                    <label class="actions-label">&nbsp;</label>
+                    <div class="filter-buttons-inline">
+                        <button type="submit" class="btn btn-secondary btn-apply-inline">
+                            <i class="fa-solid fa-filter"></i> Apply
+                        </button>
+                        <a href="{% url 'all_events' %}" class="btn btn-text btn-reset-inline">
+                            <i class="fa-solid fa-rotate-left"></i> Reset
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Events List -->
+    <div class="table-card">
+        <div class="table-header">
+            <h2>Events List ({{ events.count }})</h2>
+        </div>
+        <div class="table-responsive">
+            {% if events %}
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th>Event Name</th>
+                            <th>Scheduled Date & Time</th>
+                            <th>Location</th>
+                            <th>Mobile No.</th>
+                            <th>Advanced Rs.</th>
+                            <th>Pending Rs.</th>
+                            <th>Total Value</th>
+                            <th>Total Paid Status</th>
+                            <th>Status</th>
+                            <th class="text-center">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for event in events %}
+                            <tr>
+                                <td class="event-name-cell">
+                                    <a href="{% url 'event_detail' event.pk %}" class="event-link-title">{{ event.name }}</a>
+                                </td>
+                                <td>
+                                    <span class="date-badge">
+                                        <i class="fa-regular fa-calendar"></i> {{ event.scheduled_date|date:"d M Y, h:i A" }}
+                                    </span>
+                                </td>
+                                <td>
+                                    <span class="location-badge">
+                                        <i class="fa-solid fa-location-dot"></i> {{ event.location }}
+                                    </span>
+                                </td>
+                                <td>{{ event.mobile_no|default:"-" }}</td>
+                                <td>₹{{ event.advanced_rs|floatformat:2 }}</td>
+                                <td class="{% if event.pending_rs > 0 %}text-danger{% else %}text-muted{% endif %}">₹{{ event.pending_rs|floatformat:2 }}</td>
+                                <td class="total-rs-cell">₹{{ event.total_rs|floatformat:2 }}</td>
+                                <td>
+                                    {% if event.pending_rs > 0 %}
+                                        {% if event.status != 'CANCELLED' %}
+                                            <form action="{% url 'event_mark_paid' event.pk %}" method="POST" style="display: inline;">
+                                                {% csrf_token %}
+                                                <button type="submit" class="status-badge badge-unpaid btn-badge-clickable" title="Click to Mark as Paid">
+                                                    Unpaid
+                                                </button>
+                                            </form>
+                                        {% else %}
+                                            <span class="status-badge badge-unpaid">
+                                                Unpaid
+                                            </span>
+                                        {% endif %}
+                                    {% else %}
+                                        <span class="status-badge badge-paid">
+                                            Paid
+                                        </span>
+                                    {% endif %}
+                                </td>
+                                <td>
+                                    <form action="{% url 'event_update_status' event.pk %}" method="POST" style="display: inline;">
+                                        {% csrf_token %}
+                                        <select name="status" class="status-select select-{{ event.status|lower }}">
+                                            <option value="PENDING" class="select-pending" {% if event.status == 'PENDING' %}selected{% endif %}>Pending</option>
+                                            <option value="COMPLETED" class="select-completed" {% if event.status == 'COMPLETED' %}selected{% endif %}>Completed</option>
+                                            <option value="CANCELLED" class="select-cancelled" {% if event.status == 'CANCELLED' %}selected{% endif %}>Cancelled</option>
+                                        </select>
+                                    </form>
+                                </td>
+                                <td class="actions-cell">
+                                    {% if event.pending_rs > 0 and event.status != 'CANCELLED' %}
+                                    <form action="{% url 'event_mark_paid' event.pk %}" method="POST" style="display: inline;">
+                                        {% csrf_token %}
+                                        <button type="submit" class="btn-action btn-action-success" title="Mark as Fully Paid">
+                                            <i class="fa-solid fa-check"></i>
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                    <a href="{% url 'event_detail' event.pk %}" class="btn-action btn-action-view" title="View Details">
+                                        <i class="fa-solid fa-eye"></i>
+                                    </a>
+                                    <a href="{% url 'event_update' event.pk %}" class="btn-action btn-action-edit" title="Edit Event">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </a>
+                                    <a href="{% url 'event_delete' event.pk %}" class="btn-action btn-action-delete" title="Delete Event">
+                                        <i class="fa-solid fa-trash-can"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <div class="empty-state">
+                    <div class="empty-icon">
+                        <i class="fa-regular fa-folder-open"></i>
+                    </div>
+                    <h3>No Events Found</h3>
+                    <p>Try refining your search query/filters or add a new event to get started.</p>
+                    <a href="{% url 'event_create' %}" class="btn btn-primary mt-3">
+                        <i class="fa-solid fa-plus"></i> Add Event
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const statusSelects = document.querySelectorAll('.status-select');
+    
+    statusSelects.forEach(select => {
+        select.addEventListener('change', function(e) {
+            e.preventDefault();
+            const selectEl = this;
+            const newStatus = selectEl.value;
+            const form = selectEl.closest('form');
+            const url = form.action;
+            const csrfToken = form.querySelector('[name=csrfmiddlewaretoken]').value;
+            
+            // Disable dropdown during the request
+            selectEl.disabled = true;
+            
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/x-www-form-urlencoded',
+                    'X-CSRFToken': csrfToken,
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'Accept': 'application/json'
+                },
+                body: new URLSearchParams({
+                    'status': newStatus
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                selectEl.disabled = false;
+                if (data.status === 'success') {
+                    // Update class to match new status color
+                    selectEl.className = `status-select select-${newStatus.toLowerCase()}`;
+                    showToast(data.message, 'success');
+                } else {
+                    showToast(data.message || 'Failed to update status', 'error');
+                }
+            })
+            .catch(error => {
+                selectEl.disabled = false;
+                showToast('An error occurred while updating status.', 'error');
+                console.error('Error:', error);
+            });
+        });
+    });
+    
+    function showToast(message, type) {
+        let toast = document.createElement('div');
+        toast.className = `toast-notification toast-${type}`;
+        toast.innerHTML = `<i class="fa-solid ${type === 'success' ? 'fa-circle-check text-success' : 'fa-circle-exclamation text-danger'}"></i> <span>${message}</span>`;
+        document.body.appendChild(toast);
+        
+        // Trigger reflow/animation
+        setTimeout(() => toast.classList.add('show'), 10);
+        
+        // Remove after 3.5 seconds
+        setTimeout(() => {
+            toast.classList.remove('show');
+            setTimeout(() => toast.remove(), 400);
+        }, 3500);
+    }
+});
+</script>
+{% endblock %}

@@ -1,0 +1,32 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Delete Event - Shivmudra Events{% endblock %}
+
+{% block content %}
+<div class="confirm-delete-wrapper">
+    <div class="delete-card">
+        <div class="delete-icon-circle">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+        </div>
+        
+        <h2>Confirm Deletion</h2>
+        <p class="delete-warning-text">
+            Are you sure you want to permanently delete the event <strong>"{{ event.name }}"</strong> scheduled for <strong>{{ event.scheduled_date|date:"d M Y" }}</strong>?
+        </p>
+        <p class="delete-subtext">This action is permanent and cannot be undone.</p>
+        
+        <form method="POST" class="delete-form">
+            {% csrf_token %}
+            
+            <div class="delete-actions">
+                <button type="submit" class="btn btn-danger">
+                    <i class="fa-solid fa-trash-can"></i> Yes, Delete Event
+                </button>
+                <a href="{% url 'event_detail' event.pk %}" class="btn btn-outline">
+                    Cancel and Keep
+                </a>
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

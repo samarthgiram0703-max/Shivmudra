@@ -1,0 +1,151 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{{ title }} - Shivmudra Events{% endblock %}
+
+{% block content %}
+<div class="form-wrapper">
+    <div class="form-card">
+        <div class="form-card-header">
+            <h2>
+                {% if event %}
+                    <i class="fa-solid fa-pen-to-square"></i> Edit Event: {{ event.name }}
+                {% else %}
+                    <i class="fa-solid fa-circle-plus"></i> Add New Event
+                {% endif %}
+            </h2>
+            <p class="subtitle">Provide event details, scheduling, location, and payment parameters below.</p>
+        </div>
+
+        <form method="POST" class="styled-form">
+            {% csrf_token %}
+            
+            <div class="form-grid">
+                <!-- Event Name (Span 2) -->
+                <div class="form-group span-2">
+                    <label for="{{ form.name.id_for_label }}">
+                        <i class="fa-solid fa-tag"></i> Event Name
+                    </label>
+                    {{ form.name }}
+                    {% for error in form.name.errors %}
+                        <div class="form-error"><i class="fa-solid fa-circle-exclamation"></i> {{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <!-- Scheduled Date -->
+                <div class="form-group">
+                    <label for="{{ form.scheduled_date_only.id_for_label }}">
+                        <i class="fa-regular fa-calendar"></i> Scheduled Date
+                    </label>
+                    {{ form.scheduled_date_only }}
+                    {% for error in form.scheduled_date_only.errors %}
+                        <div class="form-error"><i class="fa-solid fa-circle-exclamation"></i> {{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <!-- Scheduled Time -->
+                <div class="form-group">
+                    <label>
+                        <i class="fa-regular fa-clock"></i> Scheduled Time
+                    </label>
+                    <div class="time-select-row">
+                        <div class="time-select-col">
+                            {{ form.scheduled_hour }}
+                        </div>
+                        <span class="time-separator">:</span>
+                        <div class="time-select-col">
+                            {{ form.scheduled_minute }}
+                        </div>
+                        <div class="time-select-col ampm-col">
+                            {{ form.scheduled_ampm }}
+                        </div>
+                    </div>
+                    {% for error in form.scheduled_hour.errors %}
+                        <div class="form-error"><i class="fa-solid fa-circle-exclamation"></i> {{ error }}</div>
+                    {% endfor %}
+                    {% for error in form.scheduled_minute.errors %}
+                        <div class="form-error"><i class="fa-solid fa-circle-exclamation"></i> {{ error }}</div>
+                    {% endfor %}
+                    {% for error in form.scheduled_ampm.errors %}
+                        <div class="form-error"><i class="fa-solid fa-circle-exclamation"></i> {{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <!-- Location -->
+                <div class="form-group">
+                    <label for="{{ form.location.id_for_label }}">
+                        <i class="fa-solid fa-location-dot"></i> Location
+                    </label>
+                    {{ form.location }}
+                    {% for error in form.location.errors %}
+                        <div class="form-error"><i class="fa-solid fa-circle-exclamation"></i> {{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <!-- Mobile No. -->
+                <div class="form-group">
+                    <label for="{{ form.mobile_no.id_for_label }}">
+                        <i class="fa-solid fa-phone"></i> Mobile Number
+                    </label>
+                    {{ form.mobile_no }}
+                    {% for error in form.mobile_no.errors %}
+                        <div class="form-error"><i class="fa-solid fa-circle-exclamation"></i> {{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <!-- Advanced Rs. -->
+                <div class="form-group">
+                    <label for="{{ form.advanced_rs.id_for_label }}">
+                        <i class="fa-solid fa-hand-holding-dollar"></i> Advanced Rs. (Paid)
+                    </label>
+                    {{ form.advanced_rs }}
+                    {% for error in form.advanced_rs.errors %}
+                        <div class="form-error"><i class="fa-solid fa-circle-exclamation"></i> {{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <!-- Pending Rs. -->
+                <div class="form-group">
+                    <label for="{{ form.pending_rs.id_for_label }}">
+                        <i class="fa-solid fa-hourglass-half"></i> Pending Rs. (Unpaid)
+                    </label>
+                    {{ form.pending_rs }}
+                    {% for error in form.pending_rs.errors %}
+                        <div class="form-error"><i class="fa-solid fa-circle-exclamation"></i> {{ error }}</div>
+                    {% endfor %}
+                </div>
+
+                <!-- Status -->
+                <div class="form-group">
+                    <label for="{{ form.status.id_for_label }}">
+                        <i class="fa-solid fa-circle-info"></i> Event Status
+                    </label>
+                    {{ form.status }}
+                    {% for error in form.status.errors %}
+                        <div class="form-error"><i class="fa-solid fa-circle-exclamation"></i> {{ error }}</div>
+                    {% endfor %}
+                </div>
+            </div>
+
+            <!-- Global errors if any -->
+            {% if form.non_field_errors %}
+                <div class="form-errors-banner">
+                    {% for error in form.non_field_errors %}
+                        <p class="form-error"><i class="fa-solid fa-circle-exclamation"></i> {{ error }}</p>
+                    {% endfor %}
+                </div>
+            {% endif %}
+
+            <div class="form-actions">
+                <button type="submit" class="btn btn-primary">
+                    <i class="fa-solid fa-floppy-disk"></i> Save Event
+                </button>
+                {% if event %}
+                    <a href="{% url 'event_detail' event.pk %}" class="btn btn-outline">Cancel</a>
+                {% else %}
+                    <a href="{% url 'event_list' %}" class="btn btn-outline">Cancel</a>
+                {% endif %}
+            </div>
+        </form>
+    </div>
+</div>
+{% endblock %}

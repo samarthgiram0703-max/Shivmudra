@@ -1,0 +1,131 @@
+{% extends 'base/base.html' %}
+
+{% block title %}{{ event.name }} Details - Shivmudra Events{% endblock %}
+
+{% block content %}
+<div class="detail-wrapper">
+    <!-- Back to dashboard link -->
+    <div class="back-link-wrapper">
+        <a href="{% url 'event_list' %}" class="back-link">
+            <i class="fa-solid fa-arrow-left"></i> Back to Dashboard
+        </a>
+    </div>
+
+    <!-- Event Detail Card -->
+    <div class="detail-card">
+        <div class="detail-header">
+            <div>
+                <span class="status-badge badge-{{ event.status|lower }} mb-3">
+                    {{ event.get_status_display }}
+                </span>
+                <h1>{{ event.name }}</h1>
+                <p class="detail-meta">
+                    <i class="fa-regular fa-clock"></i> Created on {{ event.created_at|date:"d M Y, h:i A" }}
+                </p>
+            </div>
+            <div class="detail-actions">
+                {% if event.pending_rs > 0 and event.status != 'CANCELLED' %}
+                <form action="{% url 'event_mark_paid' event.pk %}" method="POST" style="display: inline;">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-success">
+                        <i class="fa-solid fa-check-double"></i> Mark as Fully Paid
+                    </button>
+                </form>
+                {% endif %}
+                <a href="{% url 'event_update' event.pk %}" class="btn btn-secondary">
+                    <i class="fa-solid fa-pen-to-square"></i> Edit Event
+                </a>
+                <a href="{% url 'event_delete' event.pk %}" class="btn btn-danger">
+                    <i class="fa-solid fa-trash-can"></i> Delete
+                </a>
+            </div>
+        </div>
+
+        <div class="detail-grid">
+            <!-- Event Basics -->
+            <div class="detail-section">
+                <h3><i class="fa-solid fa-circle-info section-icon"></i> Event Logistics</h3>
+                
+                <div class="info-list">
+                    <div class="info-item">
+                        <span class="info-label">Date & Time</span>
+                        <span class="info-value font-highlight">
+                            <i class="fa-regular fa-calendar-days text-primary mr-2"></i>
+                            {{ event.scheduled_date|date:"l, d F Y - h:i A" }}
+                        </span>
+                    </div>
+                    
+                    <div class="info-item">
+                        <span class="info-label">Location</span>
+                        <span class="info-value font-highlight">
+                            <i class="fa-solid fa-location-dot text-danger mr-2"></i>
+                            {{ event.location }}
+                        </span>
+                    </div>
+                    
+                    <div class="info-item">
+                        <span class="info-label">Mobile Number</span>
+                        <span class="info-value font-highlight">
+                            <i class="fa-solid fa-phone text-success mr-2"></i>
+                            {{ event.mobile_no|default:"N/A" }}
+                        </span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Financial Summary -->
+            <div class="detail-section">
+                <h3><i class="fa-solid fa-indian-rupee-sign section-icon"></i> Payment Breakdown</h3>
+                
+                <div class="financial-breakdown">
+                    <div class="fin-box fin-advanced">
+                        <span class="fin-label">Advanced Paid</span>
+                        <span class="fin-amount text-primary">₹{{ event.advanced_rs|floatformat:2 }}</span>
+                    </div>
+                    
+                    <div class="fin-box fin-pending">
+                        <span class="fin-label">Pending Payment</span>
+                        <div class="pending-amount-row">
+                            <span class="fin-amount {% if event.pending_rs > 0 %}text-danger{% else %}text-muted{% endif %}">₹{{ event.pending_rs|floatformat:2 }}</span>
+                            {% if event.pending_rs > 0 and event.status != 'CANCELLED' %}
+                            <form action="{% url 'event_mark_paid' event.pk %}" method="POST" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="btn-action-paid-inline" title="Mark as Settle/Paid">
+                                    <i class="fa-solid fa-circle-check"></i>
+                                </button>
+                            </form>
+                            {% endif %}
+                        </div>
+                    </div>
+                    
+                    <div class="fin-box fin-total span-all">
+                        <span class="fin-label">Total Contract Value</span>
+                        <span class="fin-amount text-gold">₹{{ event.total_rs|floatformat:2 }}</span>
+                    </div>
+                </div>
+
+                <!-- Interactive Payment Meter (Premium UI component) -->
+                <div class="payment-meter-container">
+                    <div class="meter-label-row">
+                        <span>Payment Coverage</span>
+                        <span class="meter-percentage">
+                            {% if event.total_rs > 0 %}
+                                {% widthratio event.advanced_rs event.total_rs 100 %}% Paid
+                            {% else %}
+                                0% Paid
+                            {% endif %}
+                        </span>
+                    </div>
+                    <div class="meter-bar-bg">
+                        <div class="meter-bar-fill" style="width: {% if event.total_rs > 0 %}{% widthratio event.advanced_rs event.total_rs 100 %}{% else %}0{% endif %}%;"></div>
+                    </div>
+                    <div class="meter-legend">
+                        <span><span class="dot dot-advanced"></span> Advanced (Paid)</span>
+                        <span><span class="dot dot-pending"></span> Pending (Unpaid)</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

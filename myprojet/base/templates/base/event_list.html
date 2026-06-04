@@ -1,0 +1,104 @@
+{% extends 'base/base.html' %}
+
+{% block title %}Dashboard - Shivmudra Events{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper">
+    <!-- Header -->
+    <div class="dashboard-header">
+        <div>
+            <h1>Event Dashboard</h1>
+            <p class="subtitle">Overview and financial tracking for your event operations</p>
+        </div>
+        <div>
+            <a href="{% url 'all_events' %}" class="btn btn-secondary mr-2">
+                <i class="fa-solid fa-list"></i> All Events
+            </a>
+            <a href="{% url 'event_create' %}" class="btn btn-primary">
+                <i class="fa-solid fa-circle-plus"></i> Add New Event
+            </a>
+        </div>
+    </div>
+
+    <!-- Stats Section -->
+    <div class="stats-grid">
+        <!-- Card 1: Total Events -->
+        <div class="stat-card card-total">
+            <div class="stat-icon">
+                <i class="fa-solid fa-calendar-days"></i>
+            </div>
+            <div class="stat-content">
+                <span class="stat-label">Total Events</span>
+                <span class="stat-value">{{ stats.total_events }}</span>
+            </div>
+        </div>
+
+        <!-- Card 2: Completed Events -->
+        <div class="stat-card card-completed">
+            <div class="stat-icon">
+                <i class="fa-solid fa-calendar-check"></i>
+            </div>
+            <div class="stat-content">
+                <span class="stat-label">Completed</span>
+                <span class="stat-value text-success">{{ stats.completed_events }}</span>
+            </div>
+        </div>
+
+        <!-- Card 3: Pending Events -->
+        <div class="stat-card card-pending">
+            <div class="stat-icon">
+                <i class="fa-solid fa-clock"></i>
+            </div>
+            <div class="stat-content">
+                <span class="stat-label">Pending</span>
+                <span class="stat-value text-warning">{{ stats.pending_events }}</span>
+            </div>
+        </div>
+
+        <!-- Card 4: Cancelled Events -->
+        <div class="stat-card card-cancelled">
+            <div class="stat-icon">
+                <i class="fa-solid fa-calendar-xmark"></i>
+            </div>
+            <div class="stat-content">
+                <span class="stat-label">Cancelled</span>
+                <span class="stat-value text-danger">{{ stats.cancelled_events }}</span>
+            </div>
+        </div>
+
+        <!-- Card 5: Total Advanced -->
+        <div class="stat-card card-financial">
+            <div class="stat-icon">
+                <i class="fa-solid fa-hand-holding-dollar"></i>
+            </div>
+            <div class="stat-content">
+                <span class="stat-label">Advanced Received</span>
+                <span class="stat-value text-primary">₹{{ stats.total_advanced|floatformat:2 }}</span>
+            </div>
+        </div>
+
+        <!-- Card 6: Total Pending -->
+        <div class="stat-card card-financial">
+            <div class="stat-icon">
+                <i class="fa-solid fa-hourglass-half"></i>
+            </div>
+            <div class="stat-content">
+                <span class="stat-label">Total Pending Pay</span>
+                <span class="stat-value text-warning">₹{{ stats.total_pending|floatformat:2 }}</span>
+            </div>
+        </div>
+
+        <!-- Card 7: Total Revenue -->
+        <div class="stat-card card-revenue">
+            <div class="stat-icon">
+                <i class="fa-solid fa-indian-rupee-sign"></i>
+            </div>
+            <div class="stat-content">
+                <span class="stat-label">Total Value</span>
+                <span class="stat-value text-gold">₹{{ stats.total_revenue|floatformat:2 }}</span>
+            </div>
+        </div>
+    </div>
+
+</div>
+{% endblock %}
